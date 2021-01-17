@@ -7,14 +7,12 @@ from h2.config import H2Configuration
 from h2.connection import H2Connection
 
 # Change FILENAME to your pcap file's name.
-FILENAME = "http2-h2c.pcap"
+FILENAME = "./pcap-sample/http2-h2c.pcap"
 # Change STREAM_NUMBER to the stream number you want to follow.
 STREAM_NUMBER = 0
 
 # open the pcap file, filtered for a single TCP stream
-cap = pyshark.FileCapture(
-    FILENAME,
-)
+cap = pyshark.FileCapture(FILENAME)
 
 # sys.exit()
 
