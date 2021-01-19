@@ -23,9 +23,9 @@ decoder = Decoder()
 
 # Change INPUT_CONFIG to your pcap file's name and server/client's IP address
 INPUT_CONFIG = {
-    "pcap": "./pcap-sample/http2-h2c.pcap",
-    "client": "10.9.0.2",
-    "server": "139.162.123.134",
+    "pcap": "./pcap-sample/z.pcap",
+    "client": "10.20.50.25",
+    "server": "10.20.50.34",
 }
 pcap_file = INPUT_CONFIG["pcap"]
 client_ip = INPUT_CONFIG["client"]
@@ -75,16 +75,18 @@ client_buffer.max_frame_size = 262144
 client_events = []
 server_events = []
 
-
+# pkt_filter_key = "HTTP2"
+pkt_filter_key = "DATA"
 curr_pkt = cap.next()
 while curr_pkt:
     # print(dir(packet.tcp), type(packet.tcp), packet)
     try:
         pkt_layers = str(curr_pkt.layers)
         logger.debug("Packet layers: {0}".format(pkt_layers))
-        if "HTTP2" in pkt_layers:
+        if pkt_filter_key in pkt_layers:
             logger.debug("HTTP2 layer in current packet...")
             tmp_data = curr_pkt.tcp.payload.encode()
+            # logger.debug("tmp data: {0}".format(tmp_data))
             h_list = [e for e in tmp_data.decode("utf-8").split(":")]
             tdata = "".join(h_list)
             byte_data = bytes.fromhex(tdata)
@@ -109,6 +111,7 @@ while curr_pkt:
                 # print(client_buffer.data)
                 logger.debug("[client] Parsing HTTP2 packets...")
                 for event in client_buffer:
+                    print(event)
                     # print("Client event: {0}".format(event))
                     client_events.append(event)
             elif curr_pkt.ip.dst == server_ip:
@@ -119,6 +122,7 @@ while curr_pkt:
                 server_buffer.add_data(byte_data)
                 logger.debug("[server] Parsing HTTP2 packets...")
                 for event in server_buffer:
+                    print(event)
                     # print("Server event: {0}".format(event))
                     server_events.append(event)
             else:
@@ -137,7 +141,7 @@ for event in client_events:
     if isinstance(event, DataFrame):
         logger.info("Client received data: {0}".format(event.data.decode("utf-8")))
 
-for event in client_events:
+for event in server_events:
     logger.info("Server event: {0}, streamid: {1}".format(event, event.stream_id))
     if isinstance(event, HeadersFrame):
         logger.info("Server headers: {0}".format(decoder.decode(event.data)))
